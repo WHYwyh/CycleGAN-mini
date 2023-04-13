@@ -1,27 +1,18 @@
-"""General-purpose training script for image-to-image translation.
-This script works for various models (with option '--model': e.g., pix2pix, cyclegan, colorization) and
-different datasets (with option '--dataset_mode': e.g., aligned, unaligned, single, colorization).
-You need to specify the dataset ('--dataroot'), experiment name ('--name'), and model ('--model').
-It first creates model, dataset, and visualizer given the option.
-It then does standard network training. During the training, it also visualize/save the images, print/save the loss plot, and save models.
-The script supports continue/resume training. Use '--continue_train' to resume your previous training.
-Example:
-    Train a CycleGAN model:
-        python train.py --dataroot ./datasets/maps --name maps_cyclegan --model cycle_gan
-    Train a pix2pix model:
-        python train.py --dataroot ./datasets/facades --name facades_pix2pix --model pix2pix --direction BtoA
-See options/base_options.py and options/train_options.py for more training options.
-See training and test tips at: https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/docs/tips.md
-See frequently asked questions at: https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/docs/qa.md
-"""
 import time
-from arg_parse import args
+from arg_parse import start_parse
 from dataset import create_dataset
 from model import CycleGANModel
 from utils import print_current_losses
+import pdb
+from tqdm import tqdm
 
 if __name__ == '__main__':
-    opt = args   # get training options
+    parser = start_parse()
+
+    opt = CycleGANModel.modify_commandline_options(parser)
+
+    # get training options
+    opt = parser.parse_args()
     # create a dataset given opt.dataset_mode and other options
     dataset = create_dataset(opt)
     dataset_size = len(dataset)    # get the number of images in the dataset.
@@ -29,6 +20,7 @@ if __name__ == '__main__':
 
     # create a model given opt.model and other options
     model = CycleGANModel(opt)
+
     # regular setup: load and print networks; create schedulers
     model.setup(opt)
     total_iters = 0                # the total number of training iterations
@@ -41,7 +33,7 @@ if __name__ == '__main__':
         epoch_iter = 0
         # update learning rates in the beginning of every epoch.
         model.update_learning_rate()
-        for i, data in enumerate(dataset):  # inner loop within one epoch
+        for i, data in enumerate(tqdm(dataset)):  # inner loop within one epoch
             iter_start_time = time.time()  # timer for computation per iteration
             if total_iters % opt.print_freq == 0:
                 t_data = iter_start_time - iter_data_time
@@ -52,10 +44,6 @@ if __name__ == '__main__':
             model.set_input(data)
             # calculate loss functions, get gradients, update network weights
             model.optimize_parameters()
-
-            if total_iters % opt.display_freq == 0:   # display images on visdom and save images to a HTML file
-                save_result = total_iters % opt.update_html_freq == 0
-                model.compute_visuals()
 
             if total_iters % opt.print_freq == 0:    # print training losses and save logging information to the disk
                 losses = model.get_current_losses()
