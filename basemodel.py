@@ -30,7 +30,8 @@ class BaseModel(ABC):
             -- self.optimizers (optimizer list):    define and initialize optimizers. You can define one optimizer for each network. If two networks are updated at the same time, you can use itertools.chain to group them. See cycle_gan_model.py for an example.
         """
         self.opt = opt
-        self.gpu_ids = opt.gpu_ids
+        self.gpu_ids = opt.gpu_ids.split(',')
+        self.gpu_ids = [int(gpu) for gpu in self.gpu_ids]
         self.isTrain = opt.isTrain
         self.device = torch.device('cuda:{}'.format(
             self.gpu_ids[0])) if self.gpu_ids else torch.device('cpu')  # get device name: CPU or GPU
@@ -155,10 +156,13 @@ class BaseModel(ABC):
         for name in self.model_names:
             if isinstance(name, str):
                 save_filename = '%s_net_%s.pth' % (epoch, name)
+                if not os.path.exists(self.save_dir):
+                    os.makedirs(self.save_dir)
                 save_path = os.path.join(self.save_dir, save_filename)
                 net = getattr(self, 'net' + name)
 
                 if len(self.gpu_ids) > 0 and torch.cuda.is_available():
+                    # torch.save(net.module.cpu().state_dict(), save_path)
                     torch.save(net.module.cpu().state_dict(), save_path)
                     net.cuda(self.gpu_ids[0])
                 else:
