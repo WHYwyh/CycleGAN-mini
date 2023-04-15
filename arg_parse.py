@@ -97,7 +97,7 @@ def start_parse():
                         help='number of epochs to linearly decay learning rate to zero')
     parser.add_argument('--beta1', type=float,
                         default=0.5, help='momentum term of adam')
-    parser.add_argument('--lr', type=float, default=0.0002,
+    parser.add_argument('--lr', type=float, default=0.001,
                         help='initial learning rate for adam')
     parser.add_argument('--gan_mode', type=str, default='lsgan',
                         help='the type of GAN objective. [vanilla| lsgan | wgangp]. vanilla GAN loss is the cross-entropy objective used in the original GAN paper.')
@@ -107,5 +107,11 @@ def start_parse():
                         help='learning rate policy. [linear | step | plateau | cosine]')
     parser.add_argument('--lr_decay_iters', type=int, default=50,
                         help='multiply by a gamma every lr_decay_iters iterations')
+    # testing parameters
+    parser.add_argument('--num_test', type=int, default=10,
+                        help='number of samples to test')
+
+    parser.add_argument('--out_dir', type=str, default='./result_image',
+                        help='path to save output images')
 
     return parser

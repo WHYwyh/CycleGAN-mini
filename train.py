@@ -9,7 +9,7 @@ from tqdm import tqdm
 if __name__ == '__main__':
     parser = start_parse()
 
-    opt = CycleGANModel.modify_commandline_options(parser)
+    parser = CycleGANModel.modify_commandline_options(parser)
 
     # get training options
     opt = parser.parse_args()
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         epoch_iter = 0
         # update learning rates in the beginning of every epoch.
         model.update_learning_rate()
-        for i, data in enumerate(tqdm(dataset)):  # inner loop within one epoch
+        for i, data in enumerate(dataset):  # inner loop within one epoch
             iter_start_time = time.time()  # timer for computation per iteration
             if total_iters % opt.print_freq == 0:
                 t_data = iter_start_time - iter_data_time
